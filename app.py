@@ -1,15 +1,15 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, Response
 import requests, os
 
 app = Flask(__name__)
-
 KEY = os.environ.get("GROQ_API_KEY", "")
+PASSWORD = "vit2024"
 
 @app.route('/')
 def home():
     auth = request.args.get("key")
-    if auth != "vit2024":
-        return "Access Denied", 403
+    if auth != PASSWORD:
+        return Response("Access Denied. Use: ?key=vit2024", status=403)
     return send_file('index.html')
 
 @app.route('/api/chat', methods=['POST','OPTIONS'])
