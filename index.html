@@ -526,8 +526,7 @@ Format with clear sections:
 
 Write as natural spoken script. Include stage directions like [Write on board], [Draw diagram], [Pause], [Show hands] where appropriate. Make it feel like a real professor talking, not a textbook.`;
   try{
-    const res=await callAI({max_tokens:1000,system:SYS,messages:[{role:'user',content:prompt}]});
-    const data=await res.json();showLoad('lec',false);
+    const data=await callAI({max_tokens:1000,system:SYS,messages:[{role:'user',content:prompt}]});showLoad('lec',false);
     document.getElementById('lec-content').textContent=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'Error.';
     document.getElementById('lec-result').classList.remove('hidden');
   }catch(e){showLoad('lec',false);showErr('lec','Script generation failed.');}
