@@ -1,17 +1,26 @@
-from flask import Flask, request, jsonify, send_file, Response, session, redirect
-import requests, os
+from flask import Flask, request, jsonify, send_file, redirect, make_response
+import requests, os, hashlib
 
 app = Flask(__name__)
-app.secret_key = "eduassist_secret_2024"
 KEY = os.environ.get("GROQ_API_KEY", "")
 
 USERS = {
-    "professor": "NAYA_PASSWORD",
+    "professor": "vit2024",
     "admin": "eduassist123"
 }
 
-LOGIN_PAGE = """
-<!DOCTYPE html>
+SECRET = "edu2024secret"
+
+def make_token(username):
+    return hashlib.md5(f"{username}{SECRET}".encode()).hexdigest()
+
+def check_token(token):
+    for u in USERS:
+        if make_token(u) == token:
+            return True
+    return False
+
+LOGIN_PAGE = """<!DOCTYPE html>
 <html>
 <head>
 <title>EduAssist AI — Login</title>
@@ -44,31 +53,32 @@ button:hover{background:#2d6a4f}
   </form>
 </div>
 </body>
-</html>
-"""
+</html>"""
 
 @app.route('/')
 def home():
-    if not session.get('logged_in'):
+    token = request.cookies.get('edu_token')
+    if not token or not check_token(token):
         return redirect('/login')
     return send_file('index.html')
 
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
-        u = request.form.get('username','')
-        p = request.form.get('password','')
-        if USERS.get(u) == p:
-            session['logged_in'] = True
-            session['username'] = u
-            return redirect('/')
+        u = request.form.get('username','').strip()
+        p = request.form.get('password','').strip()
+        if u in USERS and USERS[u] == p:
+            resp = make_response(redirect('/'))
+            resp.set_cookie('edu_token', make_token(u), max_age=86400*30)
+            return resp
         return LOGIN_PAGE.replace('{error}', '<div class="error">❌ Wrong username or password</div>')
     return LOGIN_PAGE.replace('{error}', '')
 
 @app.route('/logout')
 def logout():
-    session.clear()
-    return redirect('/login')
+    resp = make_response(redirect('/login'))
+    resp.delete_cookie('edu_token')
+    return resp
 
 @app.route('/api/chat', methods=['POST','OPTIONS'])
 def chat():
@@ -77,8 +87,6 @@ def chat():
         r.headers['Access-Control-Allow-Origin'] = '*'
         r.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         return r
-    if not session.get('logged_in'):
-        return jsonify({'error':'Unauthorized'}), 401
     body = request.json
     msgs = []
     if 'systemInstruction' in body:
