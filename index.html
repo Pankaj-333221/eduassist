@@ -528,7 +528,7 @@ Write as natural spoken script. Include stage directions like [Write on board], 
   try{
     const res=await callAI({max_tokens:1000,system:SYS,messages:[{role:'user',content:prompt}]});
     const data=await res.json();showLoad('lec',false);
-    document.getElementById('lec-content').textContent=data.candidates?.[0]?.content?.parts?.[0]?.text||'Error.';
+    document.getElementById('lec-content').textContent=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'Error.';
     document.getElementById('lec-result').classList.remove('hidden');
   }catch(e){showLoad('lec',false);showErr('lec','Script generation failed.');}
 }
@@ -545,7 +545,7 @@ async function generateAssignment(){
   try{
     const res=await callAI({max_tokens:1000,messages:[{role:'user',content:prompt}]});
     const data=await res.json();showLoad('asgn',false);
-    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
+    const raw=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
     const qs=JSON.parse(raw.replace(/```json|```/g,'').trim());
     document.getElementById('asgn-content').innerHTML=qs.map((q,i)=>`<div class="q-item"><div class="q-num">Q${i+1}</div><div class="q-text">${esc(q.q)}</div></div>`).join('');
     document.getElementById('asgn-rlabel').textContent=`${qs.length} ${activeAsgnType} questions — ${topic}`;
@@ -591,7 +591,7 @@ async function summarizeText(){
   try{
     const res=await callAI({max_tokens:1000,messages:[{role:'user',content:`${styleMap[activeSumStyle]}\n\nContent:\n"""${text}"""`}]});
     const data=await res.json();showLoad('sum',false);
-    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const raw=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'';
     const container=document.getElementById('sum-content');
     if(activeSumStyle==='bullet'){
       try{const pts=JSON.parse(raw.replace(/```json|```/g,'').trim()).points||[];container.innerHTML=`<div class="kp-list">${pts.map(p=>`<div class="kp-row"><div class="kp-dot"></div><span style="font-size:13.5px;line-height:1.65">${esc(p)}</span></div>`).join('')}</div>`;}
@@ -622,7 +622,7 @@ async function askPdf(){
     const res=await callAI({max_tokens:1000,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:pdfData}},{type:'text',text:`As an academic assistant for an engineering professor: ${q}`}]}]});
     const data=await res.json();document.getElementById('pdf-loading').classList.add('hidden');
     document.getElementById('pdf-q').value='';
-    const ans=data.candidates?.[0]?.content?.parts?.[0]?.text||'Unable to answer.';
+    const ans=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'Unable to answer.';
     const h=document.getElementById('pdf-history');
     const item=document.createElement('div');item.className='qa-item';
     item.innerHTML=`<div class="qa-q">Q: ${esc(q)}</div><div class="qa-a">${esc(ans).replace(/\n/g,'<br>')}</div>`;
