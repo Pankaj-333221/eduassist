@@ -586,8 +586,7 @@ async function summarizeText(){
     eli5:'Summarize in very simple language for a 1st year engineering student. No jargon, use analogies.'
   };
   try{
-    const res=await callAI({max_tokens:1000,messages:[{role:'user',content:`${styleMap[activeSumStyle]}\n\nContent:\n"""${text}"""`}]});
-    showLoad('sum',false);
+    const data=await callAI({max_tokens:1000,messages:[{role:'user',content:`${styleMap[activeSumStyle]}\n\nContent:\n"""${text}"""`}]});showLoad('sum',false);
     const raw=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'';
     const container=document.getElementById('sum-content');
     if(activeSumStyle==='bullet'){
