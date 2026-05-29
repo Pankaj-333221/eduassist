@@ -542,8 +542,7 @@ async function generateAssignment(){
   showLoad('asgn',true);document.getElementById('asgn-result').classList.add('hidden');
   const prompt=`Generate ${count} ${activeAsgnType} questions for engineering students on "${topic}" (Subject: ${subject}). Difficulty: ${diff}. Respond ONLY with JSON array: [{"q":"question text"},...]. No markdown. Make questions academically rigorous.`;
   try{
-    const res=await callAI({max_tokens:1000,messages:[{role:'user',content:prompt}]});
-    const data=await res.json();showLoad('asgn',false);
+    const data=await callAI({max_tokens:1000,messages:[{role:'user',content:prompt}]});showLoad('asgn',false);
     const raw=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
     const qs=JSON.parse(raw.replace(/```json|```/g,'').trim());
     document.getElementById('asgn-content').innerHTML=qs.map((q,i)=>`<div class="q-item"><div class="q-num">Q${i+1}</div><div class="q-text">${esc(q.q)}</div></div>`).join('');
@@ -558,8 +557,7 @@ async function analyzeSentiment(){
   showLoad('sent',true);document.getElementById('sent-result').classList.add('hidden');
   const prompt=`Analyze sentiment of this student feedback for an engineering professor. Respond ONLY with JSON: {"label":"Positive|Negative|Neutral|Mixed","emoji":"<emoji>","confidence":<0-100>,"positive_score":<0-100>,"negative_score":<0-100>,"neutral_score":<0-100>,"explanation":"3-4 sentences: what students feel, specific issues, actionable improvement suggestions for professor"}. Feedback: """${text}"""`;
   try{
-    const res=await callAI({max_tokens:500,messages:[{role:'user',content:prompt}]});
-    const data=await res.json();showLoad('sent',false);
+    const data=await callAI({max_tokens:500,messages:[{role:'user',content:prompt}]});showLoad('sent',false);
     const r=JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text.replace(/```json|```/g,'').trim()||'{}');
     const cls=(r.label||'neutral').toLowerCase();
     document.getElementById('s-emoji').textContent=r.emoji||'😐';
@@ -589,7 +587,7 @@ async function summarizeText(){
   };
   try{
     const res=await callAI({max_tokens:1000,messages:[{role:'user',content:`${styleMap[activeSumStyle]}\n\nContent:\n"""${text}"""`}]});
-    const data=await res.json();showLoad('sum',false);
+    showLoad('sum',false);
     const raw=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'';
     const container=document.getElementById('sum-content');
     if(activeSumStyle==='bullet'){
@@ -619,7 +617,7 @@ async function askPdf(){
   document.getElementById('pdf-loading').classList.remove('hidden');
   try{
     const res=await callAI({max_tokens:1000,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:pdfData}},{type:'text',text:`As an academic assistant for an engineering professor: ${q}`}]}]});
-    const data=await res.json();document.getElementById('pdf-loading').classList.add('hidden');
+    document.getElementById('pdf-loading').classList.add('hidden');
     document.getElementById('pdf-q').value='';
     const ans=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'Unable to answer.';
     const h=document.getElementById('pdf-history');
