@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<script>
+  // Force HTTPS
+  if (location.protocol === 'http:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    location.replace('https:' + location.href.substring(5));
+  }
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EduAssist AI — VIT Faculty Tool</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #f7f5f0;
+    --surface: #ffffff;
+    --surface2: #f0ede7;
+    --surface3: #e8e4dc;
+    --border: rgba(60,50,30,0.1);
+    --border2: rgba(60,50,30,0.18);
+    --text: #1a1814;
+    --muted: #6b6558;
+    --dim: #a09a8e;
+    --accent: #2d6a4f;
+    --accent2: #1b4332;
+    --accent-light: #d8f3dc;
+    --accent-dim: rgba(45,106,79,0.1);
+    --red: #c0392b;
+    --amber: #b7791f;
+    --blue: #1a5276;
+    --font-head: 'Fraunces', serif;
+    --font-body: 'DM Sans', sans-serif;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  body { font-family: var(--font-body); background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; }
+  header { background: var(--accent2); padding: 0 1.5rem; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .logo { font-family: var(--font-head); font-weight: 500; font-size: 1.15rem; color: #fff; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+  .logo-badge { font-size: 10px; background: var(--accent); color: #d8f3dc; padding: 2px 8px; border-radius: 20px; font-family: var(--font-body); font-weight: 500; letter-spacing: 0.05em; }
+  .header-right { font-size: 12px; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 6px; }
+  .online-dot { width: 6px; height: 6px; border-radius: 50%; background: #74c69d; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  .app { display: flex; flex: 1; min-height: calc(100vh - 56px); }
+  .sidebar { width: 210px; background: var(--surface); border-right: 1px solid var(--border); padding: 1rem 0.75rem; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+  .sidebar-section { font-size: 10px; font-family: var(--font-head); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); padding: 0 8px; margin: 10px 0 4px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13.5px; color: var(--muted); transition: all 0.15s; border: 1px solid transparent; user-select: none; }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active { color: var(--accent2); background: var(--accent-dim); border-color: rgba(45,106,79,0.2); font-weight: 500; }
+  .nav-item.active .nav-icon { color: var(--accent); }
+  .nav-icon { font-size: 15px; width: 18px; text-align: center; }
+  .new-badge { font-size: 9px; background: var(--accent); color: #fff; padding: 1px 5px; border-radius: 10px; margin-left: auto; }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+  .panel { display: none; flex-direction: column; flex: 1; height: calc(100vh - 56px); }
+  .panel.active { display: flex; }
+  .panel-header { padding: 1.25rem 1.75rem 1rem; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+  .panel-title { font-family: var(--font-head); font-size: 1.1rem; font-weight: 500; color: var(--accent2); display: flex; align-items: center; gap: 8px; }
+  .panel-desc { font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .panel-content { padding: 1.5rem 1.75rem; flex: 1; overflow-y: auto; }
+  #chat-panel { overflow: hidden; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 1.25rem 1.75rem; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth; }
+  .msg { display: flex; gap: 10px; animation: fadeUp 0.25s ease; max-width: 740px; }
+  .msg.user { flex-direction: row-reverse; align-self: flex-end; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .msg-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; border: 1px solid var(--border2); }
+  .msg.ai .msg-avatar { background: var(--accent-dim); color: var(--accent); font-family: var(--font-head); }
+  .msg.user .msg-avatar { background: var(--surface3); color: var(--muted); font-size: 11px; }
+  .msg-bubble { padding: 10px 14px; border-radius: 14px; font-size: 13.5px; line-height: 1.7; max-width: calc(100% - 46px); }
+  .msg.ai .msg-bubble { background: var(--surface); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+  .msg.user .msg-bubble { background: var(--accent2); color: #fff; border-bottom-right-radius: 4px; }
+  .typing-indicator { display: flex; align-items: center; gap: 4px; padding: 4px 0; }
+  .typing-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: typing 1.2s ease-in-out infinite; }
+  .typing-dot:nth-child(2){animation-delay:.2s} .typing-dot:nth-child(3){animation-delay:.4s}
+  @keyframes typing { 0%,60%,100%{opacity:0.25;transform:scale(0.75)} 30%{opacity:1;transform:scale(1)} }
+  .chat-input-area { padding: 1rem 1.75rem 1.25rem; border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+  .quick-prompts { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .qp { font-size: 11.5px; padding: 4px 10px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border2); color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .qp:hover { color: var(--accent2); border-color: rgba(45,106,79,0.3); background: var(--accent-dim); }
+  .chat-wrap { display: flex; gap: 8px; background: var(--bg); border: 1px solid var(--border2); border-radius: var(--radius); padding: 9px 12px; align-items: flex-end; transition: border-color 0.2s; }
+  .chat-wrap:focus-within { border-color: var(--accent); }
+  #chat-input { flex: 1; background: none; border: none; outline: none; color: var(--text); font-family: var(--font-body); font-size: 13.5px; resize: none; min-height: 22px; max-height: 110px; line-height: 1.5; }
+  #chat-input::placeholder { color: var(--dim); }
+  .send-btn { width: 30px; height: 30px; border-radius: var(--radius-sm); background: var(--accent2); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; flex-shrink: 0; transition: all 0.15s; }
+  .send-btn:hover { background: var(--accent); }
+  .send-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  input.fi, select.fi, textarea.fi { background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius-sm); padding: 9px 12px; color: var(--text); font-family: var(--font-body); font-size: 13.5px; outline: none; transition: border-color 0.2s; width: 100%; }
+  input.fi:focus, select.fi:focus, textarea.fi:focus { border-color: var(--accent); }
+  textarea.fi { resize: vertical; }
+  .action-btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; background: var(--accent2); color: #fff; border: none; border-radius: var(--radius-sm); font-family: var(--font-body); font-weight: 500; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+  .action-btn:hover { background: var(--accent); }
+  .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .action-btn.sec { background: var(--surface); color: var(--muted); border: 1px solid var(--border2); }
+  .action-btn.sec:hover { color: var(--text); }
+  .result-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-top: 1.25rem; animation: fadeUp 0.3s ease; }
+  .result-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .result-label { font-size: 10.5px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--dim); }
+  .copy-btn { font-size: 11.5px; padding: 4px 10px; border-radius: 20px; background: var(--surface2); border: 1px solid var(--border2); color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .copy-btn:hover { color: var(--accent2); }
+  .result-text { font-size: 13.5px; line-height: 1.8; color: var(--text); white-space: pre-wrap; }
+  .tag-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag { padding: 5px 12px; border-radius: 20px; font-size: 12px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .tag.active { background: var(--accent-dim); border-color: rgba(45,106,79,0.3); color: var(--accent2); font-weight: 500; }
+  .q-list { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .q-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; display: flex; gap: 12px; align-items: flex-start; }
+  .q-num { font-family: var(--font-head); font-size: 1.1rem; font-weight: 500; color: var(--accent2); min-width: 22px; margin-top: 1px; }
+  .q-text { font-size: 13.5px; line-height: 1.65; color: var(--text); }
+  .sent-display { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+  .sent-emoji { font-size: 2.25rem; }
+  .sent-label { font-family: var(--font-head); font-size: 1.5rem; font-weight: 500; }
+  .sent-label.positive { color: var(--accent); } .sent-label.negative { color: var(--red); } .sent-label.neutral { color: var(--amber); } .sent-label.mixed { color: var(--blue); }
+  .bar-wrap { margin-top: 10px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12.5px; }
+  .bar-name { width: 70px; color: var(--muted); }
+  .bar-track { flex: 1; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+  .bar-fill.positive { background: var(--accent); } .bar-fill.negative { background: var(--red); } .bar-fill.neutral { background: var(--amber); }
+  .bar-pct { width: 32px; text-align: right; color: var(--muted); font-size: 12px; }
+  .style-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pill { padding: 5px 13px; border-radius: 20px; font-size: 12.5px; border: 1px solid var(--border2); background: var(--surface2); color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .pill.active { background: var(--accent-dim); border-color: rgba(45,106,79,0.3); color: var(--accent2); font-weight: 500; }
+  .kp-list { display: flex; flex-direction: column; gap: 8px; }
+  .kp-row { display: flex; gap: 10px; font-size: 13.5px; line-height: 1.6; }
+  .kp-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-top: 8px; flex-shrink: 0; }
+  .drop-zone { border: 2px dashed var(--border2); border-radius: var(--radius); padding: 2.5rem; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--surface); }
+  .drop-zone:hover, .drop-zone.over { border-color: var(--accent); background: var(--accent-dim); }
+  .pdf-info { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--accent-dim); border: 1px solid rgba(45,106,79,0.2); border-radius: var(--radius-sm); margin-bottom: 1.25rem; }
+  .qa-history { display: flex; flex-direction: column; gap: 10px; margin-top: 1.25rem; }
+  .qa-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; animation: fadeUp 0.25s ease; }
+  .qa-q { padding: 9px 14px; font-size: 13px; font-weight: 500; color: var(--muted); background: var(--surface2); border-bottom: 1px solid var(--border); }
+  .qa-a { padding: 12px 14px; font-size: 13.5px; line-height: 1.7; }
+  .main-textarea { width: 100%; background: var(--surface); border: 1px solid var(--border2); border-radius: var(--radius); padding: 12px 14px; color: var(--text); font-family: var(--font-body); font-size: 13.5px; line-height: 1.65; resize: vertical; outline: none; transition: border-color 0.2s; min-height: 120px; }
+  .main-textarea:focus { border-color: var(--accent); }
+  .main-textarea::placeholder { color: var(--dim); }
+  .btn-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
+  .loading { font-size: 12.5px; color: var(--accent); display: flex; align-items: center; gap: 7px; margin-top: 10px; }
+  .spinner { width: 14px; height: 14px; border: 2px solid var(--accent-light); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .err { font-size: 12.5px; color: var(--red); margin-top: 8px; }
+  .hidden { display: none !important; }
+  .welcome-center { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 2rem; text-align: center; gap: 6px; }
+  .welcome-title { font-family: var(--font-head); font-size: 1.15rem; font-weight: 500; color: var(--accent2); }
+  .welcome-sub { font-size: 13px; color: var(--muted); max-width: 380px; line-height: 1.65; }
+  .timer-display { font-family: var(--font-head); font-size: 2.5rem; font-weight: 400; color: var(--accent2); text-align: center; margin: 8px 0; letter-spacing: -0.02em; }
+  .timer-bar-wrap { background: var(--surface2); border-radius: 3px; height: 6px; overflow: hidden; margin-bottom: 12px; }
+  .timer-bar-fill { height: 100%; background: var(--accent); transition: width 1s linear; }
+  .seg-chip { padding: 6px 12px; border-radius: var(--radius-sm); background: var(--surface); border: 1px solid var(--border2); font-size: 12px; color: var(--muted); cursor: pointer; transition: all 0.15s; }
+  .seg-chip.active-seg { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+
+
+<header>
+  <div class="logo">📚 EduAssist AI <span class="logo-badge">VIT Faculty Edition</span></div>
+  <div class="header-right"><div class="online-dot" style="margin-left:8px"></div> Gemini AI — Free</div>
+</header>
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-section">Core Tools</div>
+    <div class="nav-item active" onclick="switchPanel('chat')" id="nav-chat"><span class="nav-icon">💬</span> AI Assistant</div>
+    <div class="nav-item" onclick="switchPanel('lecture')" id="nav-lecture"><span class="nav-icon">🎙️</span> Lecture Script <span class="new-badge">NEW</span></div>
+    <div class="nav-item" onclick="switchPanel('assign')" id="nav-assign"><span class="nav-icon">📋</span> Assignment Gen</div>
+    <div class="sidebar-section">Analysis</div>
+    <div class="nav-item" onclick="switchPanel('sentiment')" id="nav-sentiment"><span class="nav-icon">🎭</span> Feedback Analyzer</div>
+    <div class="nav-item" onclick="switchPanel('summarize')" id="nav-summarize"><span class="nav-icon">📝</span> Summarizer</div>
+    <div class="nav-item" onclick="switchPanel('pdf')" id="nav-pdf"><span class="nav-icon">📄</span> PDF Q&A</div>
+    <div class="sidebar-section">Lecture Tools</div>
+    <div class="nav-item" onclick="switchPanel('timer')" id="nav-timer"><span class="nav-icon">⏱️</span> Lecture Timer <span class="new-badge">NEW</span></div>
+  </aside>
+  <main class="main">
+
+    <!-- CHAT -->
+    <div class="panel active" id="chat-panel">
+      <div class="panel-header">
+        <div class="panel-title">💬 AI Assistant</div>
+        <div class="panel-desc">Academic queries, content ideas, student help — ask anything</div>
+      </div>
+      <div class="chat-messages" id="chat-messages">
+        <div class="welcome-center" id="chat-welcome">
+          <div style="font-size:2rem;margin-bottom:6px">🎓</div>
+          <div class="welcome-title">Namaste, Professor!</div>
+          <div class="welcome-sub">Main aapka AI academic assistant hoon. Assignment banane se lekar research papers summarize karne tak — bas poochhein.</div>
+        </div>
+      </div>
+      <div class="chat-input-area">
+        <div class="quick-prompts">
+          <div class="qp" onclick="useQP(this)">Generate MCQs on Operating Systems</div>
+          <div class="qp" onclick="useQP(this)">Explain Dijkstra's algorithm simply</div>
+          <div class="qp" onclick="useQP(this)">Write email to students about exam</div>
+          <div class="qp" onclick="useQP(this)">Create viva questions on DBMS</div>
+        </div>
+        <div class="chat-wrap">
+          <textarea id="chat-input" placeholder="Ask me anything academic…" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="chat-send" onclick="sendChat()">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- LECTURE SCRIPT -->
+    <div class="panel" id="lecture-panel">
+      <div class="panel-header">
+        <div class="panel-title">🎙️ Lecture Script Generator</div>
+        <div class="panel-desc">2-3 ghante ki preparation ko 5 minute mein — complete lecture script ready</div>
+      </div>
+      <div class="panel-content">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Subject / Course</label><input class="fi" id="lec-subject" type="text" placeholder="e.g. Data Structures, DBMS, CN"></div>
+          <div class="form-group"><label class="form-label">Topic</label><input class="fi" id="lec-topic" type="text" placeholder="e.g. Binary Search Trees, SQL Joins"></div>
+          <div class="form-group"><label class="form-label">Duration</label>
+            <select class="fi" id="lec-duration"><option value="45">45 minutes</option><option value="60" selected>60 minutes</option><option value="90">90 minutes</option><option value="120">2 hours</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Student Level</label>
+            <select class="fi" id="lec-level"><option>B.Tech 1st Year</option><option selected>B.Tech 2nd Year</option><option>B.Tech 3rd Year</option><option>B.Tech Final Year</option><option>M.Tech</option></select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:12px"><label class="form-label">Key points to cover (optional)</label><textarea class="fi" id="lec-points" placeholder="e.g. insertion, deletion, traversal, time complexity, real-world use cases" style="height:70px;resize:vertical"></textarea></div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Script style</label>
+          <div class="tag-row" id="lec-style-tags">
+            <div class="tag active" data-val="conversational">Conversational</div>
+            <div class="tag" data-val="structured">Formal & Structured</div>
+            <div class="tag" data-val="story-based">Story-based</div>
+            <div class="tag" data-val="socratic">Socratic (Q&A style)</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="action-btn" onclick="generateLecture()">✨ Generate Lecture Script</button>
+          <button class="action-btn sec" onclick="clearSec('lecture')">Clear</button>
+        </div>
+        <div id="lec-loading" class="loading hidden"><div class="spinner"></div> Creating your lecture script…</div>
+        <div id="lec-error" class="err hidden"></div>
+        <div id="lec-result" class="hidden">
+          <div class="result-box">
+            <div class="result-top"><span class="result-label">Your lecture script</span><button class="copy-btn" onclick="copyEl('lec-content')">📋 Copy</button></div>
+            <div class="result-text" id="lec-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ASSIGNMENT -->
+    <div class="panel" id="assign-panel">
+      <div class="panel-header">
+        <div class="panel-title">📋 Assignment Generator</div>
+        <div class="panel-desc">Topic do, question paper ready — seconds mein</div>
+      </div>
+      <div class="panel-content">
+        <div class="form-grid">
+          <div class="form-group"><label class="form-label">Subject</label><input class="fi" id="asgn-subject" type="text" placeholder="e.g. Computer Networks"></div>
+          <div class="form-group"><label class="form-label">Topic</label><input class="fi" id="asgn-topic" type="text" placeholder="e.g. TCP/IP Protocol"></div>
+          <div class="form-group"><label class="form-label">No. of Questions</label>
+            <select class="fi" id="asgn-count"><option>5</option><option>10</option><option selected>15</option><option>20</option></select>
+          </div>
+          <div class="form-group"><label class="form-label">Difficulty</label>
+            <select class="fi" id="asgn-diff"><option>Easy</option><option selected>Medium</option><option>Hard</option><option>Mixed</option></select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Question type</label>
+          <div class="tag-row" id="asgn-type-tags">
+            <div class="tag active" data-val="Theory">Theory</div>
+            <div class="tag" data-val="MCQ">MCQ</div>
+            <div class="tag" data-val="Practical/Code">Practical/Code</div>
+            <div class="tag" data-val="Case Study">Case Study</div>
+            <div class="tag" data-val="Mixed">Mixed</div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="action-btn" onclick="generateAssignment()">📋 Generate Questions</button>
+          <button class="action-btn sec" onclick="clearSec('assign')">Clear</button>
+        </div>
+        <div id="asgn-loading" class="loading hidden"><div class="spinner"></div> Generating questions…</div>
+        <div id="asgn-error" class="err hidden"></div>
+        <div id="asgn-result" class="hidden">
+          <div class="result-box">
+            <div class="result-top"><span class="result-label" id="asgn-rlabel">Assignment questions</span><button class="copy-btn" onclick="copyEl('asgn-content')">📋 Copy all</button></div>
+            <div class="q-list" id="asgn-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SENTIMENT -->
+    <div class="panel" id="sentiment-panel">
+      <div class="panel-header">
+        <div class="panel-title">🎭 Student Feedback Analyzer</div>
+        <div class="panel-desc">Student responses paste karo — emotional tone aur improvement areas instantly</div>
+      </div>
+      <div class="panel-content">
+        <div class="form-group" style="margin-bottom:12px"><label class="form-label">Paste student feedback</label><textarea class="main-textarea" id="sent-input" placeholder="Student feedback paste karo — ek ya multiple students ka combined…" style="min-height:150px"></textarea></div>
+        <div class="btn-row"><button class="action-btn" onclick="analyzeSentiment()">Analyze Feedback</button><button class="action-btn sec" onclick="clearSec('sentiment')">Clear</button></div>
+        <div id="sent-loading" class="loading hidden"><div class="spinner"></div> Analyzing sentiment…</div>
+        <div id="sent-error" class="err hidden"></div>
+        <div id="sent-result" class="hidden">
+          <div class="result-box">
+            <div class="result-label" style="margin-bottom:12px">Feedback Analysis</div>
+            <div class="sent-display"><div class="sent-emoji" id="s-emoji"></div><div><div class="sent-label" id="s-label"></div><div style="font-size:12px;color:var(--muted);margin-top:2px" id="s-conf"></div></div></div>
+            <div class="bar-wrap" id="s-bars"></div>
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)"><div class="result-label" style="margin-bottom:8px">AI Explanation + Improvement Suggestions</div><div class="result-text" id="s-explanation"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUMMARIZE -->
+    <div class="panel" id="summarize-panel">
+      <div class="panel-header">
+        <div class="panel-title">📝 Content Summarizer</div>
+        <div class="panel-desc">Research papers, textbooks, articles — key points instantly</div>
+      </div>
+      <div class="panel-content">
+        <div class="form-group" style="margin-bottom:12px"><label class="form-label">Paste content</label><textarea class="main-textarea" id="sum-input" placeholder="Research paper abstract, textbook chapter, journal article, student submission…" style="min-height:160px"></textarea></div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">Summary style</label>
+          <div class="style-pills">
+            <div class="pill active" data-val="concise">Concise</div>
+            <div class="pill" data-val="detailed">Detailed</div>
+            <div class="pill" data-val="bullet">Key Points</div>
+            <div class="pill" data-val="lecture-notes">Lecture Notes</div>
+            <div class="pill" data-val="eli5">Simple (ELI5)</div>
+          </div>
+        </div>
+        <div class="btn-row"><button class="action-btn" onclick="summarizeText()">Summarize</button><button class="action-btn sec" onclick="clearSec('summarize')">Clear</button></div>
+        <div id="sum-loading" class="loading hidden"><div class="spinner"></div> Generating summary…</div>
+        <div id="sum-error" class="err hidden"></div>
+        <div id="sum-result" class="hidden">
+          <div class="result-box">
+            <div class="result-top"><span class="result-label" id="sum-rlabel">Summary</span><button class="copy-btn" onclick="copyEl('sum-content')">📋 Copy</button></div>
+            <div id="sum-content"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PDF -->
+    <div class="panel" id="pdf-panel">
+      <div class="panel-header">
+        <div class="panel-title">📄 PDF Q&A</div>
+        <div class="panel-desc">Research paper ya document upload karo aur seedha sawaal poochho</div>
+      </div>
+      <div class="panel-content">
+        <div id="pdf-upload-area">
+          <div class="drop-zone" id="pdf-drop" onclick="document.getElementById('pdf-file').click()" ondragover="dOver(event)" ondragleave="dLeave()" ondrop="dDrop(event)">
+            <div style="font-size:2rem;color:var(--dim);margin-bottom:10px">📄</div>
+            <div style="font-size:14px;color:var(--muted)">PDF drop karo ya click karo</div>
+            <div style="font-size:12px;color:var(--dim);margin-top:4px">Research papers, textbooks, student submissions — max 10MB</div>
+          </div>
+          <input type="file" id="pdf-file" accept=".pdf" style="display:none" onchange="pdfSelect(event)">
+        </div>
+        <div id="pdf-loaded" class="hidden">
+          <div class="pdf-info"><span>📄</span><span style="font-size:13px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="pdf-name"></span><span style="cursor:pointer;color:var(--dim);font-size:17px" onclick="removePdf()">✕</span></div>
+          <div class="form-group" style="margin-bottom:12px"><label class="form-label">Apna sawaal poochho</label><textarea class="main-textarea" id="pdf-q" placeholder="Is paper ki main finding kya hai? Methodology explain karo. Conclusions summarize karo." style="min-height:80px"></textarea></div>
+          <button class="action-btn" onclick="askPdf()">Ask Question</button>
+          <div id="pdf-loading" class="loading hidden"><div class="spinner"></div> PDF padh raha hoon…</div>
+          <div id="pdf-error" class="err hidden"></div>
+          <div class="qa-history" id="pdf-history"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMER -->
+    <div class="panel" id="timer-panel">
+      <div class="panel-header">
+        <div class="panel-title">⏱️ Lecture Timer</div>
+        <div class="panel-desc">Lecture ko sections mein divide karo — time pe rahe hamesha</div>
+      </div>
+      <div class="panel-content">
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Total lecture duration</label>
+          <div class="tag-row" id="dur-tags">
+            <div class="tag active" data-val="45">45 min</div>
+            <div class="tag" data-val="60">60 min</div>
+            <div class="tag" data-val="90">90 min</div>
+            <div class="tag" data-val="120">2 hours</div>
+          </div>
+        </div>
+        <div style="margin-bottom:14px">
+          <div class="form-label" style="margin-bottom:8px">Lecture segments</div>
+          <div id="seg-inputs" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+          <button class="action-btn sec" onclick="addSeg()" style="font-size:12.5px;padding:6px 14px">+ Add segment</button>
+        </div>
+        <div class="btn-row">
+          <button class="action-btn" onclick="startTimer()">▶ Start Lecture</button>
+          <button class="action-btn sec" onclick="resetTimer()">Reset</button>
+        </div>
+        <div id="timer-area" class="hidden" style="margin-top:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;text-align:center">
+          <div style="font-size:12px;color:var(--dim);margin-bottom:4px" id="seg-name-display">Intro</div>
+          <div class="timer-display" id="t-clock">00:00</div>
+          <div class="timer-bar-wrap"><div class="timer-bar-fill" id="t-bar" style="width:0%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:-4px;margin-bottom:14px">
+            <span id="t-elapsed">0:00 elapsed</span><span id="t-remaining">0:00 remaining</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:14px" id="seg-chips"></div>
+          <div style="display:flex;gap:8px;justify-content:center">
+            <button class="action-btn sec" onclick="prevSeg()" style="font-size:12px;padding:6px 14px">◀ Prev</button>
+            <button class="action-btn" onclick="pauseResume()" id="pause-btn" style="font-size:12px;padding:6px 18px">⏸ Pause</button>
+            <button class="action-btn sec" onclick="nextSeg()" style="font-size:12px;padding:6px 14px">Next ▶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+let API_KEY = localStorage.getItem('edu_gemini_key') || '';
+
+const SYS = 'You are EduAssist AI, an academic assistant built specifically for engineering college professors in India, especially VIT (Vellore Institute of Technology). Help with lecture preparation, assignment creation, student Q&A, research paper analysis, and academic content. Keep responses clear, structured, and suitable for B.Tech/M.Tech level education. Use Indian academic context where relevant.';
+
+async function callAI({ system, messages, max_tokens }) {
+  const contents = [];
+  for (const m of (messages || [])) {
+    const role = m.role === 'assistant' ? 'model' : 'user';
+    if (Array.isArray(m.content)) {
+      const parts = [];
+      for (const part of m.content) {
+        if (part.type === 'text') parts.push({ text: part.text });
+        else if (part.type === 'document' && part.source?.type === 'base64')
+          parts.push({ inlineData: { mimeType: part.source.media_type, data: part.source.data } });
+      }
+      contents.push({ role, parts });
+    } else {
+      contents.push({ role, parts: [{ text: m.content }] });
+    }
+  }
+  const res = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents,
+      ...(system ? { systemInstruction: { parts: [{ text: system }] } } : {}),
+      generationConfig: { maxOutputTokens: max_tokens || 1000, temperature: 0.7 }
+    })
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data?.error || 'Server error');
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  return { content: [{ text }] };
+}
+
+let chatHistory = [];
+let pdfData = null;
+let activeLecStyle = 'conversational';
+let activeAsgnType = 'Theory';
+let activeSumStyle = 'concise';
+let timerSegs = [{name:'Introduction',dur:10},{name:'Core content',dur:25},{name:'Examples',dur:15},{name:'Q&A / Summary',dur:10}];
+let timerInterval = null, timerRunning = false, currentSeg = 0, segElapsed = 0;
+
+function switchPanel(name) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById(name+'-panel').classList.add('active');
+  document.getElementById('nav-'+name).classList.add('active');
+}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,110)+'px';}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChat();}}
+function useQP(el){document.getElementById('chat-input').value=el.textContent;sendChat();}
+function esc(t){return(t||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function copyEl(id){navigator.clipboard.writeText(document.getElementById(id).innerText||'').then(()=>alert('Copied!'));}
+
+// Tag pickers
+document.getElementById('lec-style-tags').addEventListener('click',e=>{const t=e.target.closest('.tag');if(!t)return;document.querySelectorAll('#lec-style-tags .tag').forEach(x=>x.classList.remove('active'));t.classList.add('active');activeLecStyle=t.dataset.val;});
+document.getElementById('asgn-type-tags').addEventListener('click',e=>{const t=e.target.closest('.tag');if(!t)return;document.querySelectorAll('#asgn-type-tags .tag').forEach(x=>x.classList.remove('active'));t.classList.add('active');activeAsgnType=t.dataset.val;});
+document.querySelector('.style-pills').addEventListener('click',e=>{const t=e.target.closest('.pill');if(!t)return;document.querySelectorAll('.style-pills .pill').forEach(x=>x.classList.remove('active'));t.classList.add('active');activeSumStyle=t.dataset.val;});
+document.getElementById('dur-tags').addEventListener('click',e=>{const t=e.target.closest('.tag');if(!t)return;document.querySelectorAll('#dur-tags .tag').forEach(x=>x.classList.remove('active'));t.classList.add('active');});
+
+// Loading helpers
+function showLoad(id,show){document.getElementById(id+'-loading').classList.toggle('hidden',!show);const e=document.getElementById(id+'-error');if(e)e.classList.add('hidden');}
+function showErr(id,msg){const e=document.getElementById(id+'-error');if(e){e.textContent=msg;e.classList.remove('hidden');}}
+function clearSec(s){document.querySelectorAll('#'+s+'-panel input[type=text],#'+s+'-panel textarea').forEach(i=>i.value='');const r=document.getElementById(s+'-result');if(r)r.classList.add('hidden');const e=document.getElementById(s+'-error');if(e)e.classList.add('hidden');}
+
+// Chat
+async function sendChat(){
+  const inp=document.getElementById('chat-input');
+  const msg=inp.value.trim();if(!msg)return;
+  document.getElementById('chat-welcome').style.display='none';
+  inp.value='';inp.style.height='auto';
+  document.getElementById('chat-send').disabled=true;
+  appendMsg('user',msg);chatHistory.push({role:'user',content:msg});
+  const typing=appendTyping();
+  try{
+    const data=await callAI({max_tokens:1000,system:SYS,messages:chatHistory});typing.remove();
+    const reply=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'Error occurred.';
+    chatHistory.push({role:'assistant',content:reply});appendMsg('ai',reply);
+  }catch(e){typing.remove();appendMsg('ai','Connection error. Please try again.');}
+  document.getElementById('chat-send').disabled=false;
+}
+function appendMsg(role,text){
+  const w=document.getElementById('chat-messages');
+  const d=document.createElement('div');d.className='msg '+role;
+  d.innerHTML=`<div class="msg-avatar">${role==='ai'?'✦':'You'}</div><div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}</div>`;
+  w.appendChild(d);w.scrollTop=w.scrollHeight;return d;
+}
+function appendTyping(){
+  const w=document.getElementById('chat-messages');
+  const d=document.createElement('div');d.className='msg ai';
+  d.innerHTML=`<div class="msg-avatar">✦</div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  w.appendChild(d);w.scrollTop=w.scrollHeight;return d;
+}
+
+// Lecture Script
+async function generateLecture(){
+  const subject=document.getElementById('lec-subject').value.trim();
+  const topic=document.getElementById('lec-topic').value.trim();
+  const duration=document.getElementById('lec-duration').value;
+  const level=document.getElementById('lec-level').value;
+  const points=document.getElementById('lec-points').value.trim();
+  if(!subject||!topic){alert('Subject aur Topic bharo pehle.');return;}
+  showLoad('lec',true);document.getElementById('lec-result').classList.add('hidden');
+  const prompt=`Create a complete, detailed ${duration}-minute lecture script for ${level} students on "${topic}" in subject "${subject}". Style: ${activeLecStyle}. ${points?`Key points: ${points}`:''}
+
+Format with clear sections:
+[INTRODUCTION - ${Math.round(duration*0.1)} min] — Hook, objectives, why this matters
+[MAIN CONTENT] — divided into sub-sections with time markers like [10 min]
+[EXAMPLES & ANALOGIES] — use relatable Indian engineering student context
+[STUDENT INTERACTION] — specific questions to ask class, pause points
+[SUMMARY & RECAP - ${Math.round(duration*0.08)} min]
+[HOMEWORK/ASSIGNMENT] — one clear task
+
+Write as natural spoken script. Include stage directions like [Write on board], [Draw diagram], [Pause], [Show hands] where appropriate. Make it feel like a real professor talking, not a textbook.`;
+  try{
+    const res=await callAI({max_tokens:1000,system:SYS,messages:[{role:'user',content:prompt}]});
+    const data=await res.json();showLoad('lec',false);
+    document.getElementById('lec-content').textContent=data.candidates?.[0]?.content?.parts?.[0]?.text||'Error.';
+    document.getElementById('lec-result').classList.remove('hidden');
+  }catch(e){showLoad('lec',false);showErr('lec','Script generation failed.');}
+}
+
+// Assignment
+async function generateAssignment(){
+  const subject=document.getElementById('asgn-subject').value.trim();
+  const topic=document.getElementById('asgn-topic').value.trim();
+  const count=document.getElementById('asgn-count').value;
+  const diff=document.getElementById('asgn-diff').value;
+  if(!subject||!topic){alert('Subject aur Topic bharo pehle.');return;}
+  showLoad('asgn',true);document.getElementById('asgn-result').classList.add('hidden');
+  const prompt=`Generate ${count} ${activeAsgnType} questions for engineering students on "${topic}" (Subject: ${subject}). Difficulty: ${diff}. Respond ONLY with JSON array: [{"q":"question text"},...]. No markdown. Make questions academically rigorous.`;
+  try{
+    const res=await callAI({max_tokens:1000,messages:[{role:'user',content:prompt}]});
+    const data=await res.json();showLoad('asgn',false);
+    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'[]';
+    const qs=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    document.getElementById('asgn-content').innerHTML=qs.map((q,i)=>`<div class="q-item"><div class="q-num">Q${i+1}</div><div class="q-text">${esc(q.q)}</div></div>`).join('');
+    document.getElementById('asgn-rlabel').textContent=`${qs.length} ${activeAsgnType} questions — ${topic}`;
+    document.getElementById('asgn-result').classList.remove('hidden');
+  }catch(e){showLoad('asgn',false);showErr('asgn','Generation failed.');}
+}
+
+// Sentiment
+async function analyzeSentiment(){
+  const text=document.getElementById('sent-input').value.trim();if(!text)return;
+  showLoad('sent',true);document.getElementById('sent-result').classList.add('hidden');
+  const prompt=`Analyze sentiment of this student feedback for an engineering professor. Respond ONLY with JSON: {"label":"Positive|Negative|Neutral|Mixed","emoji":"<emoji>","confidence":<0-100>,"positive_score":<0-100>,"negative_score":<0-100>,"neutral_score":<0-100>,"explanation":"3-4 sentences: what students feel, specific issues, actionable improvement suggestions for professor"}. Feedback: """${text}"""`;
+  try{
+    const res=await callAI({max_tokens:500,messages:[{role:'user',content:prompt}]});
+    const data=await res.json();showLoad('sent',false);
+    const r=JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text.replace(/```json|```/g,'').trim()||'{}');
+    const cls=(r.label||'neutral').toLowerCase();
+    document.getElementById('s-emoji').textContent=r.emoji||'😐';
+    document.getElementById('s-label').textContent=r.label||'Neutral';
+    document.getElementById('s-label').className='sent-label '+cls;
+    document.getElementById('s-conf').textContent=`${r.confidence||0}% confidence`;
+    document.getElementById('s-explanation').textContent=r.explanation||'';
+    document.getElementById('s-bars').innerHTML=`
+      <div class="bar-row"><span class="bar-name">Positive</span><div class="bar-track"><div class="bar-fill positive" id="bp" style="width:0%"></div></div><span class="bar-pct">${r.positive_score||0}%</span></div>
+      <div class="bar-row"><span class="bar-name">Negative</span><div class="bar-track"><div class="bar-fill negative" id="bn" style="width:0%"></div></div><span class="bar-pct">${r.negative_score||0}%</span></div>
+      <div class="bar-row"><span class="bar-name">Neutral</span><div class="bar-track"><div class="bar-fill neutral" id="bnu" style="width:0%"></div></div><span class="bar-pct">${r.neutral_score||0}%</span></div>`;
+    document.getElementById('sent-result').classList.remove('hidden');
+    setTimeout(()=>{document.getElementById('bp').style.width=(r.positive_score||0)+'%';document.getElementById('bn').style.width=(r.negative_score||0)+'%';document.getElementById('bnu').style.width=(r.neutral_score||0)+'%';},60);
+  }catch(e){showLoad('sent',false);showErr('sent','Analysis failed.');}
+}
+
+// Summarize
+async function summarizeText(){
+  const text=document.getElementById('sum-input').value.trim();if(!text)return;
+  showLoad('sum',true);document.getElementById('sum-result').classList.add('hidden');
+  const styleMap={
+    concise:'Write a concise 3-4 sentence summary capturing the core idea.',
+    detailed:'Write a detailed 3-paragraph summary covering main arguments, methodology, and conclusions.',
+    bullet:'Extract 6-8 key bullet points as JSON: {"points":["...","..."]}. JSON only, no markdown.',
+    'lecture-notes':'Convert into structured lecture notes: TOPIC, KEY CONCEPTS (3-5 points), IMPORTANT FORMULAS/TERMS, EXAM IMPORTANT POINTS, FURTHER READING.',
+    eli5:'Summarize in very simple language for a 1st year engineering student. No jargon, use analogies.'
+  };
+  try{
+    const res=await callAI({max_tokens:1000,messages:[{role:'user',content:`${styleMap[activeSumStyle]}\n\nContent:\n"""${text}"""`}]});
+    const data=await res.json();showLoad('sum',false);
+    const raw=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+    const container=document.getElementById('sum-content');
+    if(activeSumStyle==='bullet'){
+      try{const pts=JSON.parse(raw.replace(/```json|```/g,'').trim()).points||[];container.innerHTML=`<div class="kp-list">${pts.map(p=>`<div class="kp-row"><div class="kp-dot"></div><span style="font-size:13.5px;line-height:1.65">${esc(p)}</span></div>`).join('')}</div>`;}
+      catch{container.innerHTML=`<div class="result-text">${esc(raw)}</div>`;}
+    }else{container.innerHTML=`<div class="result-text">${esc(raw).replace(/\n\n/g,'</div><div class="result-text" style="margin-top:10px">').replace(/\n/g,'<br>')}</div>`;}
+    const labels={concise:'Concise summary',detailed:'Detailed summary',bullet:'Key points','lecture-notes':'Lecture notes',eli5:'Simple summary'};
+    document.getElementById('sum-rlabel').textContent=labels[activeSumStyle];
+    document.getElementById('sum-result').classList.remove('hidden');
+  }catch(e){showLoad('sum',false);showErr('sum','Summarization failed.');}
+}
+
+// PDF
+function dOver(e){e.preventDefault();document.getElementById('pdf-drop').classList.add('over');}
+function dLeave(){document.getElementById('pdf-drop').classList.remove('over');}
+function dDrop(e){e.preventDefault();dLeave();const f=e.dataTransfer.files[0];if(f)loadPdf(f);}
+function pdfSelect(e){if(e.target.files[0])loadPdf(e.target.files[0]);}
+function loadPdf(file){
+  if(file.size>10*1024*1024){alert('File 10MB se badi hai.');return;}
+  const r=new FileReader();
+  r.onload=e=>{pdfData=e.target.result.split(',')[1];document.getElementById('pdf-name').textContent=file.name;document.getElementById('pdf-upload-area').style.display='none';document.getElementById('pdf-loaded').classList.remove('hidden');};
+  r.readAsDataURL(file);
+}
+function removePdf(){pdfData=null;document.getElementById('pdf-file').value='';document.getElementById('pdf-upload-area').style.display='block';document.getElementById('pdf-loaded').classList.add('hidden');document.getElementById('pdf-history').innerHTML='';}
+async function askPdf(){
+  const q=document.getElementById('pdf-q').value.trim();if(!q||!pdfData)return;
+  document.getElementById('pdf-loading').classList.remove('hidden');
+  try{
+    const res=await callAI({max_tokens:1000,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:pdfData}},{type:'text',text:`As an academic assistant for an engineering professor: ${q}`}]}]});
+    const data=await res.json();document.getElementById('pdf-loading').classList.add('hidden');
+    document.getElementById('pdf-q').value='';
+    const ans=data.candidates?.[0]?.content?.parts?.[0]?.text||'Unable to answer.';
+    const h=document.getElementById('pdf-history');
+    const item=document.createElement('div');item.className='qa-item';
+    item.innerHTML=`<div class="qa-q">Q: ${esc(q)}</div><div class="qa-a">${esc(ans).replace(/\n/g,'<br>')}</div>`;
+    h.insertBefore(item,h.firstChild);
+  }catch(e){document.getElementById('pdf-loading').classList.add('hidden');showErr('pdf','Failed. Try again.');}
+}
+
+// Timer
+function renderSegInputs(){
+  document.getElementById('seg-inputs').innerHTML=timerSegs.map((s,i)=>`
+    <div style="display:flex;gap:8px;align-items:center">
+      <input class="fi" value="${s.name}" oninput="timerSegs[${i}].name=this.value" style="flex:1;padding:7px 10px;font-size:13px">
+      <input class="fi" type="number" value="${s.dur}" min="1" oninput="timerSegs[${i}].dur=parseInt(this.value)||5" style="width:70px;padding:7px 10px;font-size:13px">
+      <span style="font-size:12px;color:var(--dim)">min</span>
+      <span onclick="removeSeg(${i})" style="cursor:pointer;color:var(--dim);font-size:18px;line-height:1">×</span>
+    </div>`).join('');
+}
+function addSeg(){timerSegs.push({name:'Segment '+(timerSegs.length+1),dur:10});renderSegInputs();}
+function removeSeg(i){if(timerSegs.length>1){timerSegs.splice(i,1);renderSegInputs();}}
+renderSegInputs();
+
+function fmt(s){const m=Math.floor(Math.abs(s)/60);const sec=Math.abs(s)%60;return`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;}
+function updateDisplay(){
+  const seg=timerSegs[currentSeg];const segDurSec=seg.dur*60;const remaining=Math.max(0,segDurSec-segElapsed);
+  const pct=Math.min(100,Math.round((segElapsed/segDurSec)*100));
+  document.getElementById('seg-name-display').textContent=`${currentSeg+1}/${timerSegs.length} — ${seg.name}`;
+  document.getElementById('t-clock').textContent=fmt(remaining);
+  document.getElementById('t-bar').style.width=pct+'%';
+  document.getElementById('t-elapsed').textContent=fmt(segElapsed)+' elapsed';
+  document.getElementById('t-remaining').textContent=fmt(remaining)+' remaining';
+}
+function startTimer(){
+  currentSeg=0;segElapsed=0;
+  document.getElementById('timer-area').classList.remove('hidden');
+  document.getElementById('seg-chips').innerHTML=timerSegs.map((s,i)=>`<div class="seg-chip ${i===0?'active-seg':''}" id="sc${i}">${s.name}</div>`).join('');
+  updateDisplay();timerRunning=true;document.getElementById('pause-btn').textContent='⏸ Pause';
+  if(timerInterval)clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{if(!timerRunning)return;segElapsed++;const sd=timerSegs[currentSeg].dur*60;if(segElapsed>=sd){if(currentSeg<timerSegs.length-1)nextSeg();else{clearInterval(timerInterval);timerRunning=false;document.getElementById('pause-btn').textContent='✓ Done!';}}else updateDisplay();},1000);
+}
+function nextSeg(){if(currentSeg<timerSegs.length-1){document.getElementById('sc'+currentSeg)?.classList.remove('active-seg');currentSeg++;segElapsed=0;document.getElementById('sc'+currentSeg)?.classList.add('active-seg');updateDisplay();}}
+function prevSeg(){if(currentSeg>0){document.getElementById('sc'+currentSeg)?.classList.remove('active-seg');currentSeg--;segElapsed=0;document.getElementById('sc'+currentSeg)?.classList.add('active-seg');updateDisplay();}}
+function pauseResume(){timerRunning=!timerRunning;document.getElementById('pause-btn').textContent=timerRunning?'⏸ Pause':'▶ Resume';}
+function resetTimer(){clearInterval(timerInterval);timerRunning=false;currentSeg=0;segElapsed=0;document.getElementById('timer-area').classList.add('hidden');}
+
+
+
+
+</script>
+
+</body>
+</html>
