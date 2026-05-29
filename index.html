@@ -615,10 +615,7 @@ async function askPdf(){
   const q=document.getElementById('pdf-q').value.trim();if(!q||!pdfData)return;
   document.getElementById('pdf-loading').classList.remove('hidden');
   try{
-    const res=await callAI({max_tokens:1000,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:pdfData}},{type:'text',text:`As an academic assistant for an engineering professor: ${q}`}]}]});
-    document.getElementById('pdf-loading').classList.add('hidden');
-    document.getElementById('pdf-q').value='';
-    const ans=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'Unable to answer.';
+    const data=await callAI({max_tokens:1000,messages:[{role:'user',content:[{type:'document',source:{type:'base64',media_type:'application/pdf',data:pdfData}},{type:'text',text:`As an academic assistant for an engineering professor: ${q}`}]}]});document.getElementById('pdf-loading').classList.add('hidden');document.getElementById('pdf-q').value='';const ans=data.content?.[0]?.text||data.candidates?.[0]?.content?.parts?.[0]?.text||'Unable to answer.';
     const h=document.getElementById('pdf-history');
     const item=document.createElement('div');item.className='qa-item';
     item.innerHTML=`<div class="qa-q">Q: ${esc(q)}</div><div class="qa-a">${esc(ans).replace(/\n/g,'<br>')}</div>`;
