@@ -35,8 +35,8 @@ button:hover{background:#2d6a4f}
   <div class="logo">📚 EduAssist AI</div>
   <div class="sub">VIT Faculty Edition — Please login</div>
   {error}
-  <label>Username</label>
   <form method="POST" action="/login">
+  <label>Username</label>
   <input type="text" name="username" placeholder="Enter username" required>
   <label>Password</label>
   <input type="password" name="password" placeholder="Enter password" required>
@@ -60,6 +60,7 @@ def login():
         p = request.form.get('password','')
         if USERS.get(u) == p:
             session['logged_in'] = True
+            session['username'] = u
             return redirect('/')
         return LOGIN_PAGE.replace('{error}', '<div class="error">❌ Wrong username or password</div>')
     return LOGIN_PAGE.replace('{error}', '')
@@ -76,6 +77,8 @@ def chat():
         r.headers['Access-Control-Allow-Origin'] = '*'
         r.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         return r
+    if not session.get('logged_in'):
+        return jsonify({'error':'Unauthorized'}), 401
     body = request.json
     msgs = []
     if 'systemInstruction' in body:
