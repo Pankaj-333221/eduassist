@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify, send_file
-import requests, os, os
+import requests, os
 
 app = Flask(__name__)
-KEY = os.environ.get("GROQ_API_KEY","")
+
+KEY = os.environ.get("GROQ_API_KEY", "")
 
 @app.route('/')
 def home():
@@ -35,4 +36,5 @@ def chat():
     r.headers['Access-Control-Allow-Origin'] = '*'
     return r
 
-app.run(host='0.0.0.0', port=8080)
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)
