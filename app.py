@@ -93,7 +93,21 @@ def chat():
         msgs.append({'role':'system','content':body['systemInstruction']['parts'][0]['text']})
     for m in body.get('contents',[]):
         role = 'assistant' if m['role']=='model' else 'user'
-        msgs.append({'role':role,'content':m['parts'][0].get('text','')})
+        parts = m.get('parts',[])
+        text_parts = []
+        for part in parts:
+            if 'text' in part:
+                text_parts.append(part['text'])
+            elif 'inlineData' in part:
+                import base64, io, PyPDF2
+                try:
+                    pdf_bytes = base64.b64decode(part['inlineData']['data'])
+                    reader = PyPDF2.PdfReader(io.BytesIO(pdf_bytes))
+                    pdf_text = ' '.join([page.extract_text() or '' for page in reader.pages])
+                    text_parts.append(f"PDF Content: {pdf_text[:4000]}")
+                except Exception as e:
+                    text_parts.append(f"Could not read PDF: {str(e)}")
+        msgs.append({'role': role, 'content': ' '.join(text_parts)})
     resp = requests.post(
         'https://api.groq.com/openai/v1/chat/completions',
         headers={'Authorization':'Bearer '+KEY,'Content-Type':'application/json'},
