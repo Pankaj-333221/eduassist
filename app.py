@@ -7,6 +7,9 @@ KEY = os.environ.get("GROQ_API_KEY", "")
 
 @app.route('/')
 def home():
+    auth = request.args.get("key")
+    if auth != "vit2024":
+        return "Access Denied", 403
     return send_file('index.html')
 
 @app.route('/api/chat', methods=['POST','OPTIONS'])
