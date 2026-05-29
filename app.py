@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, send_file
 import requests, os
 
 app = Flask(__name__)
-KEY = "GROQ_KEY_HERE"
+KEY = "os.environ.get("GROQ_API_KEY","")"
 
 @app.route('/')
 def home():
