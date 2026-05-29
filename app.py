@@ -6,7 +6,7 @@ app.secret_key = "eduassist_secret_2024"
 KEY = os.environ.get("GROQ_API_KEY", "")
 
 USERS = {
-    "professor": "vit2024",
+    "professor": "NAYA_PASSWORD",
     "admin": "eduassist123"
 }
 
