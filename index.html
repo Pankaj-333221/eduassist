@@ -158,7 +158,7 @@
 
 <header>
   <div class="logo">📚 EduAssist AI <span class="logo-badge">VIT Faculty Edition</span></div>
-  <div class="header-right"><a href="/logout" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:4px 12px;border-radius:20px;font-size:11.5px;cursor:pointer;font-family:DM Sans,sans-serif;text-decoration:none;margin-right:8px">Logout</a><div class="online-dot" style="margin-left:8px"></div> Gemini AI — Free</div>
+  <div class="header-right"><a href="/logout" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);color:#fff;padding:4px 12px;border-radius:20px;font-size:11.5px;cursor:pointer;font-family:DM Sans,sans-serif;text-decoration:none;margin-right:8px">Logout</a><div class="online-dot" style="margin-left:8px"></div> AI Powered</div>
 </header>
 <div class="app">
   <aside class="sidebar">
@@ -184,8 +184,8 @@
       <div class="chat-messages" id="chat-messages">
         <div class="welcome-center" id="chat-welcome">
           <div style="font-size:2rem;margin-bottom:6px">🎓</div>
-          <div class="welcome-title">Namaste, Professor!</div>
-          <div class="welcome-sub">Main aapka AI academic assistant hoon. Assignment banane se lekar research papers summarize karne tak — bas poochhein.</div>
+          <div class="welcome-title">Hello, Professor!</div>
+          <div class="welcome-sub">I am your AI academic assistant. From creating assignments to summarizing research papers — just ask me anything.</div>
         </div>
       </div>
       <div class="chat-input-area">
@@ -196,8 +196,8 @@
           <div class="qp" onclick="useQP(this)">Create viva questions on DBMS</div>
         </div>
         <div class="chat-wrap">
-          <textarea id="chat-input" placeholder="Ask me anything academic…" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-          <button class="send-btn" id="chat-send" onclick="sendChat()">➤</button>
+          <textarea id="chat-input" placeholder="Ask me anything academic..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+          <button class="send-btn" id="voice-btn" onclick="toggleVoice()" title="Voice Input" style="margin-right:4px;background:var(--surface3);color:var(--text)">🎤</button><button class="send-btn" id="chat-send" onclick="sendChat()">➤</button>
         </div>
       </div>
     </div>
@@ -206,11 +206,11 @@
     <div class="panel" id="lecture-panel">
       <div class="panel-header">
         <div class="panel-title">🎙️ Lecture Script Generator</div>
-        <div class="panel-desc">2-3 ghante ki preparation ko 5 minute mein — complete lecture script ready</div>
+        <div class="panel-desc">Convert hours of preparation into minutes — complete lecture script ready</div>
       </div>
       <div class="panel-content">
         <div class="form-grid">
-          <div class="form-group"><label class="form-label">Subject / Course</label><input class="fi" id="lec-subject" type="text" placeholder="e.g. Data Structures, DBMS, CN"></div>
+          <div class="form-group"><label class="form-label">Subject / Course</label><input class="fi" id="lec-subject" type="text" placeholder="e.g. Data Structures, DBMS, Networks"></div>
           <div class="form-group"><label class="form-label">Topic</label><input class="fi" id="lec-topic" type="text" placeholder="e.g. Binary Search Trees, SQL Joins"></div>
           <div class="form-group"><label class="form-label">Duration</label>
             <select class="fi" id="lec-duration"><option value="45">45 minutes</option><option value="60" selected>60 minutes</option><option value="90">90 minutes</option><option value="120">2 hours</option></select>
@@ -248,7 +248,7 @@
     <div class="panel" id="assign-panel">
       <div class="panel-header">
         <div class="panel-title">📋 Assignment Generator</div>
-        <div class="panel-desc">Topic do, question paper ready — seconds mein</div>
+        <div class="panel-desc">Enter a topic, get a question paper — in seconds</div>
       </div>
       <div class="panel-content">
         <div class="form-grid">
@@ -290,10 +290,10 @@
     <div class="panel" id="sentiment-panel">
       <div class="panel-header">
         <div class="panel-title">🎭 Student Feedback Analyzer</div>
-        <div class="panel-desc">Student responses paste karo — emotional tone aur improvement areas instantly</div>
+        <div class="panel-desc">Paste student responses — get emotional tone and improvement areas instantly</div>
       </div>
       <div class="panel-content">
-        <div class="form-group" style="margin-bottom:12px"><label class="form-label">Paste student feedback</label><textarea class="main-textarea" id="sent-input" placeholder="Student feedback paste karo — ek ya multiple students ka combined…" style="min-height:150px"></textarea></div>
+        <div class="form-group" style="margin-bottom:12px"><label class="form-label">Paste student feedback</label><textarea class="main-textarea" id="sent-input" placeholder="Paste student feedback — from one or multiple students..." style="min-height:150px"></textarea></div>
         <div class="btn-row"><button class="action-btn" onclick="analyzeSentiment()">Analyze Feedback</button><button class="action-btn sec" onclick="clearSec('sentiment')">Clear</button></div>
         <div id="sent-loading" class="loading hidden"><div class="spinner"></div> Analyzing sentiment…</div>
         <div id="sent-error" class="err hidden"></div>
@@ -315,7 +315,7 @@
         <div class="panel-desc">Research papers, textbooks, articles — key points instantly</div>
       </div>
       <div class="panel-content">
-        <div class="form-group" style="margin-bottom:12px"><label class="form-label">Paste content</label><textarea class="main-textarea" id="sum-input" placeholder="Research paper abstract, textbook chapter, journal article, student submission…" style="min-height:160px"></textarea></div>
+        <div class="form-group" style="margin-bottom:12px"><label class="form-label">Paste content</label><textarea class="main-textarea" id="sum-input" placeholder="Research paper abstract, textbook chapter, journal article, student submission..." style="min-height:160px"></textarea></div>
         <div class="form-group" style="margin-bottom:12px">
           <label class="form-label">Summary style</label>
           <div class="style-pills">
@@ -342,7 +342,7 @@
     <div class="panel" id="pdf-panel">
       <div class="panel-header">
         <div class="panel-title">📄 PDF Q&A</div>
-        <div class="panel-desc">Research paper ya document upload karo aur seedha sawaal poochho</div>
+        <div class="panel-desc">Upload a research paper or document and ask questions directly</div>
       </div>
       <div class="panel-content">
         <div id="pdf-upload-area">
@@ -355,7 +355,7 @@
         </div>
         <div id="pdf-loaded" class="hidden">
           <div class="pdf-info"><span>📄</span><span style="font-size:13px;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" id="pdf-name"></span><span style="cursor:pointer;color:var(--dim);font-size:17px" onclick="removePdf()">✕</span></div>
-          <div class="form-group" style="margin-bottom:12px"><label class="form-label">Apna sawaal poochho</label><textarea class="main-textarea" id="pdf-q" placeholder="Is paper ki main finding kya hai? Methodology explain karo. Conclusions summarize karo." style="min-height:80px"></textarea></div>
+          <div class="form-group" style="margin-bottom:12px"><label class="form-label">Ask your question</label><textarea class="main-textarea" id="pdf-q" placeholder="What is the main finding? Explain the methodology. Summarize the conclusions." style="min-height:80px"></textarea></div>
           <button class="action-btn" onclick="askPdf()">Ask Question</button>
           <div id="pdf-loading" class="loading hidden"><div class="spinner"></div> PDF padh raha hoon…</div>
           <div id="pdf-error" class="err hidden"></div>
@@ -368,7 +368,7 @@
     <div class="panel" id="timer-panel">
       <div class="panel-header">
         <div class="panel-title">⏱️ Lecture Timer</div>
-        <div class="panel-desc">Lecture ko sections mein divide karo — time pe rahe hamesha</div>
+        <div class="panel-desc">Divide your lecture into sections — always stay on time</div>
       </div>
       <div class="panel-content">
         <div class="form-group" style="margin-bottom:14px">
