@@ -496,8 +496,7 @@ function appendMsg(role,text){
   const w=document.getElementById('chat-messages');
   const d=document.createElement('div');
   d.className='msg '+role;
-  let bubble='<div class="msg-bubble">'+esc(text).split('
-').join('<br>');
+  let bubble='<div class="msg-bubble">'+esc(text).split('\n').join('<br>');
   if(role==='ai') bubble+=' <button onclick="speakText(this.parentElement.innerText)" style="background:none;border:none;cursor:pointer;font-size:13px;opacity:0.5">&#128266;</button>';
   bubble+='</div>';
   d.innerHTML='<div class="msg-avatar">'+(role==='ai'?'✦':'You')+'</div>'+bubble;
