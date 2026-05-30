@@ -497,7 +497,7 @@ function appendMsg(role,text){
   const d=document.createElement('div');
   d.className='msg '+role;
   let bubble='<div class="msg-bubble">'+esc(text).split('\n').join('<br>');
-  if(role==='ai') bubble+=' <button onclick="speakText(this.parentElement.innerText)" style="background:none;border:none;cursor:pointer;font-size:13px;opacity:0.5">&#128266;</button>';
+  if(role==='ai') bubble+=' <button onclick="speakText(this,this.parentElement.innerText)" style="background:none;border:none;cursor:pointer;font-size:13px;opacity:0.5">&#128266;</button>';
   bubble+='</div>';
   d.innerHTML='<div class="msg-avatar">'+(role==='ai'?'✦':'You')+'</div>'+bubble;
   w.appendChild(d);w.scrollTop=w.scrollHeight;return d;
@@ -694,12 +694,20 @@ function toggleVoice() {
   recognition.start();
 }
 
-function speakText(text) {
-  if (!('speechSynthesis' in window)) return;
+function speakText(btn,text){
+  if(!('speechSynthesis' in window))return;
+  if(window.speechSynthesis.speaking&&!window.speechSynthesis.paused){
+    window.speechSynthesis.pause();if(btn)btn.textContent='▶️';return;
+  }
+  if(window.speechSynthesis.paused){
+    window.speechSynthesis.resume();if(btn)btn.textContent='⏸️';return;
+  }
   window.speechSynthesis.cancel();
-  const u = new SpeechSynthesisUtterance(text.replace(/[#*`]/g,'').substring(0,500));
-  u.lang = 'en-US'; u.rate = 0.9;
+  const u=new SpeechSynthesisUtterance((text||'').replace(/[#*`🔊▶️⏸️]/g,'').trim().substring(0,500));
+  u.lang='en-US';u.rate=0.9;
+  u.onend=()=>{if(btn)btn.textContent='🔊';};
   window.speechSynthesis.speak(u);
+  if(btn)btn.textContent='⏸️';
 }
 </script>
 
