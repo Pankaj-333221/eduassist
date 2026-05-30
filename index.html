@@ -709,6 +709,21 @@ function speakText(btn,text){
   window.speechSynthesis.speak(u);
   if(btn)btn.textContent='⏸️';
 }
+
+function toggleSidebar(){
+  const sb=document.querySelector('.sidebar');
+  const vis=sb.style.display==='flex'||(sb.style.display===''&&window.innerWidth>768);
+  if(vis){sb.style.display='none';}
+  else{
+    sb.style.display='flex';
+    if(window.innerWidth<=768){
+      sb.style.position='fixed';sb.style.top='56px';sb.style.left='0';
+      sb.style.bottom='0';sb.style.zIndex='999';sb.style.width='220px';
+      sb.style.background='#fff';sb.style.boxShadow='4px 0 20px rgba(0,0,0,0.15)';
+    }else{sb.style.position='';sb.style.boxShadow='';sb.style.zIndex='';}
+  }
+}
+
 </script>
 
 </body>
